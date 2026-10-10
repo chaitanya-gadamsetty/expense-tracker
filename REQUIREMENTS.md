@@ -116,6 +116,7 @@ Groceries, Food & Dining, Transport & Fuel, Rent & EMI, Utilities & Bills, Shopp
 - Shared settings (categories, budgets, recurring) sync too.
 
 ### 5.3 Nice-to-have (later)
+- **From screenshot** button: on-device text reading of bank/UPI screenshots into the confirmation card (~1 day; workaround today: iPhone Live Text → Copy → paste). Revisit after a week of use, with real screenshots.
 - Receipt photo attachment (proof only)
 - Bank/UPI statement CSV import with dedupe
 - Salary-cycle months
