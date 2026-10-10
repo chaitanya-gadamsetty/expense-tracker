@@ -112,7 +112,7 @@ Groceries, Food & Dining, Transport & Fuel, Rent & EMI, Utilities & Bills, Shopp
 - **Household settings come from the shared file** when a phone first links to it (names, budgets, categories); the phone is then asked again whose phone it is. Device owner never syncs.
 - Daily copies of the shared file (last 7) are kept in the owner's `Expense Tracker` folder.
 - Known limits: Google sign-in lasts about an hour, then the app shows "Tap to sync" (one tap, usually no password). If both phones save at the same moment, one upload can briefly overwrite the other; the next sync from that phone restores its records, because every phone keeps a full copy.
-- One-time Google Cloud setup: add the expense-tracker address as a redirect URI, enable the Google Picker API with a browser key, and add the partner's Gmail as a test user.
+- **Own Google Cloud project ("Expense Tracker")**, separate from the donation tracker, so it can be published independently. One-time setup: OAuth client (web), Drive + Picker APIs, browser API key, test users.
 - Shared settings (categories, budgets, recurring) sync too.
 
 ### 5.3 Nice-to-have (later)
@@ -139,10 +139,12 @@ Income tracking, **savings/investments (SIP, RD, FD, PPF): these go in a separat
 | Payment method field | **Adopted** | Card / UPI / Cash / Bank / Other, auto-filled from SMS |
 | Receipt tag | Deferred (nice-to-have) | |
 
-## 5.6 Sharing the app with other people
-- The app is a public link with no accounts. Each phone or browser keeps its own data, so **anyone I share the link with starts with an empty app and never sees my data**, and I never see theirs.
-- Each person or household keeps their own backups. From v1.1, each connects **their own** Google Drive; only people who share a Drive folder see each other's expenses.
-- First-run setup lets a new user set person names, the monthly budget (default ₹1,00,000) and categories.
+## 5.6 Sharing the app with friends & family (evaluated 2026-10-11)
+- **Without sync:** anyone can open the link and use it fully. Each phone keeps its own data; nobody sees anyone else's. No accounts, no setup beyond names/budget.
+- **With sync:** each household creates its own file in its own Drive and shares it only with its own members. Households never see each other's data, and I (as the app's owner) never see anyone's: there is no server, and data goes straight from their phone to their Drive.
+- **Blocker for sync at scale:** while the Google sign-in is in *Testing* mode, only Gmail addresses I add as test users can sign in (max 100), and they see a "Google hasn't verified this app" warning. To let anyone sync, the app must be *published* (needs a privacy-policy page and home page; `drive.file` is the least-privileged Drive scope, but whether review is needed must be confirmed in the Cloud Console).
+- **Responsibilities that come with sharing:** every update reaches everyone; I'm their support; parsers are tuned to my banks (others fall back to quick-add until their SMS samples are added); each household owns its backups.
+- Limits: one household file per phone (someone in two households, e.g. a parent, can only link one); Android share-to-app not built.
 
 ## 6. Privacy
 - Data stays on my devices (and our own Google Drive from v1.1). No third-party servers or analytics.

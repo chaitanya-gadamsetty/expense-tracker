@@ -1,9 +1,13 @@
-// Google Cloud project shared with the donation tracker (same OAuth client, same consent screen).
-export const CLIENT_ID = '99253073247-2ulvegjnh39aou0h8589lnq1cg3ecsjf.apps.googleusercontent.com'
-/** Project number (the first part of the client ID). The file picker needs it to grant this app access. */
-export const APP_ID = '99253073247'
-/**
- * Browser API key for the Google Picker. Public by design; restrict it in Google Cloud to
- * HTTP referrers https://chaitanya-gadamsetty.github.io/* (and localhost) and to the Picker API.
- */
+// Google Cloud project "Expense Tracker" (separate from the donation tracker's project).
+// None of these are secrets: they identify the app to Google and are restricted in the Cloud Console.
+// The app uses the browser sign-in flow, so there is no client secret anywhere.
+
+/** OAuth 2.0 Client ID (Web application). */
+export const CLIENT_ID = ''
+/** Project number. The file picker needs it to grant this app access to a picked file. */
+export const APP_ID = ''
+/** Browser API key, restricted to the github.io / localhost referrers and the Google Picker API. */
 export const PICKER_API_KEY = ''
+
+/** False until the Google Cloud values above are filled in. */
+export const syncConfigured = () => !!CLIENT_ID && !!APP_ID

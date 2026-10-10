@@ -9,6 +9,7 @@ import { formatINR } from '../lib/format'
 import { CADENCE_LABEL, advance } from '../lib/recurring'
 import { rangeBounds } from '../lib/stats'
 import type { AppData } from '../lib/useData'
+import { syncConfigured } from '../sync/config'
 import { pickerAvailable } from '../sync/picker'
 import { describeLastSync, useSync } from '../sync/SyncProvider'
 import { CADENCES, PEOPLE, SPEND_TYPES, SPEND_TYPE_LABEL, type Category, type Recurring } from '../types'
@@ -387,7 +388,11 @@ function SyncPage() {
             <li>The app can only see the file it creates (or the one you pick), never the rest of your Drive.</li>
             <li>Your data also stays on this phone, so the app works offline.</li>
           </ul>
-          <button className="btn primary" style={{ alignSelf: 'flex-start' }} onClick={sync.connect}>Connect Google Drive</button>
+          {syncConfigured() ? (
+            <button className="btn primary" style={{ alignSelf: 'flex-start' }} onClick={sync.connect}>Connect Google Drive</button>
+          ) : (
+            <div className="alert info">Sync is coming soon: the app’s Google connection is still being set up.</div>
+          )}
         </div>
       )}
 

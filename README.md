@@ -51,9 +51,9 @@ Paste a masked real sample into `src/lib/sms.test.ts` with the expected result, 
 
 ## Google Cloud setup (one time)
 
-Same project and OAuth client as the donation tracker.
+Own project, **Expense Tracker** (kept separate from the donation tracker so each can be published on its own). Values go in `src/sync/config.ts`.
 
-1. **APIs & Services → Credentials → the OAuth client → Authorized redirect URIs:** add `https://chaitanya-gadamsetty.github.io/expense-tracker/` (and `http://localhost:5181/expense-tracker/` for local testing). Origins `https://chaitanya-gadamsetty.github.io` / `http://localhost:5181` under Authorized JavaScript origins.
-2. **APIs & Services → Library:** enable **Google Picker API** (Google Drive API is already on).
-3. **Credentials → Create credentials → API key:** restrict to HTTP referrers `https://chaitanya-gadamsetty.github.io/*` and `http://localhost:5181/*`, and to the Picker API. Put it in `src/sync/config.ts` as `PICKER_API_KEY`.
-4. **OAuth consent screen → Test users:** add the partner's Gmail (and anyone else who will sync).
+1. Create the project; enable **Google Drive API** and **Google Picker API**.
+2. Google Auth Platform → Branding: app name, support email. Audience: External, Testing; add test users. Data access: `.../auth/drive.file` only.
+3. Clients → Create → Web application. JavaScript origins `https://chaitanya-gadamsetty.github.io`, `http://localhost:5181`; redirect URIs `https://chaitanya-gadamsetty.github.io/expense-tracker/`, `http://localhost:5181/expense-tracker/`. → `CLIENT_ID`. Project number (Dashboard) → `APP_ID`.
+4. Credentials → API key, restricted to referrers `https://chaitanya-gadamsetty.github.io/*`, `http://localhost:5181/*` and to the Picker API → `PICKER_API_KEY`.
