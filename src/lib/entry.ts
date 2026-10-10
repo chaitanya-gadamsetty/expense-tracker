@@ -199,3 +199,28 @@ export async function commitDraft(d: ExpenseDraft, recurring: Recurring[]): Prom
     { payRecurringId: pays && (d.payRecurring || d.forRecurringId) ? pays.id : undefined },
   )
 }
+
+// ---------- save errors ----------
+
+export class SaveTimeoutError extends Error {
+  constructor() {
+    super('Saving is taking too long.')
+  }
+}
+
+/** Rejects if `p` hasn't settled in `ms` — so a stuck browser database shows a message instead of hanging. */
+export function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new SaveTimeoutError()), ms)
+    p.then((v) => { clearTimeout(t); resolve(v) }, (e) => { clearTimeout(t); reject(e) })
+  })
+}
+
+/** Plain-language message for a failed save. */
+export function saveErrorMessage(e: unknown): string {
+  const err = e as Error
+  if (err instanceof SaveTimeoutError || /DatabaseClosed|UnknownError|InvalidState|Connection to Indexed Database/i.test(`${err?.name} ${err?.message}`)) {
+    return 'Couldn’t save: this browser’s storage stopped responding. Close the app (or Safari tab) completely, reopen it and try again. Nothing already saved is lost.'
+  }
+  return err?.message || 'Couldn’t save. Please try again.'
+}

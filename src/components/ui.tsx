@@ -42,7 +42,8 @@ export function SpendTypeChip({ value }: { value: SpendType }) {
 
 export const swatch = (color: number) => `var(--c${((color % 8) + 8) % 8})`
 
-export function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+/** Bottom sheet on phones, centred dialog on wider screens. `action` sits top-right, clear of Safari's bottom toolbar. */
+export function Modal({ title, onClose, children, action }: { title: string; onClose: () => void; children: ReactNode; action?: ReactNode }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
@@ -58,9 +59,12 @@ export function Modal({ title, onClose, children }: { title: string; onClose: ()
       <div className="sheet" role="dialog" aria-modal="true" aria-label={title}>
         <div className="sheet-head">
           <h2>{title}</h2>
-          <button className="btn ghost sm" onClick={onClose} aria-label="Close">
-            {Icon.close}
-          </button>
+          <div className="row" style={{ gap: 4, flexWrap: 'nowrap' }}>
+            {action}
+            <button className="btn ghost sm" onClick={onClose} aria-label="Close">
+              {Icon.close}
+            </button>
+          </div>
         </div>
         {children}
       </div>

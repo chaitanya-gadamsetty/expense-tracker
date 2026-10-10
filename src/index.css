@@ -206,10 +206,10 @@ textarea.input { min-height: 72px; resize: vertical; }
 .backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.4); z-index: 50; display: flex; align-items: flex-end; justify-content: center; }
 .sheet {
   background: var(--bg); width: 100%; max-width: 560px; max-height: 92dvh; overflow-y: auto;
-  border-radius: 18px 18px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+  border-radius: 18px 18px 0 0; padding: 18px 16px calc(48px + env(safe-area-inset-bottom));
 }
 @media (min-width: 640px) { .backdrop { align-items: center; } .sheet { border-radius: 18px; } }
-.sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -18px -16px 14px; padding: 14px 16px 10px; position: sticky; top: -18px; z-index: 2; background: var(--bg); }
 
 /* ---------- combobox ---------- */
 .combo { position: relative; }

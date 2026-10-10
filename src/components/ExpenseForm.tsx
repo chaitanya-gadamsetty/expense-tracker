@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { deleteExpense } from '../db'
-import { commitDraft, validateDraft, withCategory, type ExpenseDraft } from '../lib/entry'
+import { commitDraft, saveErrorMessage, validateDraft, withCategory, withTimeout, type ExpenseDraft } from '../lib/entry'
 import type { AppData } from '../lib/useData'
 import { METHODS, PEOPLE, SPEND_TYPES, SPEND_TYPE_LABEL } from '../types'
 import { CategoryPicker } from './CategoryPicker'
@@ -29,17 +29,20 @@ export function ExpenseForm({ initial, notice, data, onClose }: {
   }, [data.expenses])
 
   const save = async () => {
+    const invalid = validateDraft(d)
+    if (invalid) return setError(invalid)
     setSaving(true)
     setError('')
     try {
-      await commitDraft(d, data.recurring)
+      await withTimeout(commitDraft(d, data.recurring), 8000)
       onClose()
     } catch (e) {
-      setError((e as Error).message)
+      setError(saveErrorMessage(e))
     } finally {
       setSaving(false)
     }
   }
+  const saveLabel = saving ? 'Saving…' : 'Save'
 
   const remove = async () => {
     if (!d.id || !confirm('Delete this expense?')) return
@@ -48,8 +51,12 @@ export function ExpenseForm({ initial, notice, data, onClose }: {
   }
 
   return (
-    <Modal title={editing ? 'Edit expense' : 'Add expense'} onClose={onClose}>
-      <form className="stack" onSubmit={(e) => { e.preventDefault(); save() }}>
+    <Modal
+      title={editing ? 'Edit expense' : 'Add expense'}
+      onClose={onClose}
+      action={<button type="submit" form="expense-form" className="btn primary sm" disabled={saving}>{saveLabel}</button>}
+    >
+      <form id="expense-form" className="stack" noValidate onSubmit={(e) => { e.preventDefault(); save() }}>
         {notice && <div className="alert warn">{notice}</div>}
         <div className="grid-2">
           <label className="field">
@@ -98,13 +105,13 @@ export function ExpenseForm({ initial, notice, data, onClose }: {
         </label>
 
         <DraftChecks d={d} data={data} onChange={set} />
-        {error && <div className="alert danger">{error}</div>}
+        {error && <div className="alert danger" role="alert">{error}</div>}
 
         <div className="spread">
           {editing ? <button type="button" className="btn danger" onClick={remove}>Delete</button> : <span />}
           <div className="row">
             <button type="button" className="btn" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn primary" disabled={saving || !!validateDraft(d)}>{saving ? 'Saving…' : 'Save'}</button>
+            <button type="submit" className="btn primary" disabled={saving}>{saveLabel}</button>
           </div>
         </div>
       </form>

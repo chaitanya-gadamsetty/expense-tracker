@@ -86,3 +86,13 @@ describe('recurringFor', () => {
     expect(recurringFor(newDraft({ id: 'x', amount: '25000', date: '2026-10-03', categoryId: 'rent' }), [rent])).toBeUndefined()
   })
 })
+
+describe('save errors', () => {
+  it('times out a stuck save with a plain message', async () => {
+    const { withTimeout, saveErrorMessage } = await import('./entry')
+    const err = await withTimeout(new Promise(() => {}), 10).catch((e) => e)
+    expect(saveErrorMessage(err)).toMatch(/storage stopped responding/)
+    expect(await withTimeout(Promise.resolve(5), 50)).toBe(5)
+    expect(saveErrorMessage(new Error('Choose a category.'))).toBe('Choose a category.')
+  })
+})
