@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { deleteExpense } from '../db'
 import { formatDate, todayISO } from '../lib/dates'
 import { commitDraft, newDraft, parseEntry, validateDraft, withCategory, type ExpenseDraft, type ParsedEntry } from '../lib/entry'
@@ -17,12 +17,15 @@ export function EntryBox({ data, onOpenForm }: { data: AppData; onOpenForm: (d: 
   const [pickCategory, setPickCategory] = useState(false)
   const [saved, setSaved] = useState<{ id: string; text: string } | null>(null)
   const [error, setError] = useState('')
+  const [hint, setHint] = useState('')
+  const boxRef = useRef<HTMLTextAreaElement>(null)
 
   const handle = (input: string) => {
     const t = input.trim()
     if (!t) return
     setSaved(null)
     setError('')
+    setHint('')
     const parsed = parseEntry(t, { today: todayISO(), owner: data.owner, categories: data.categories, expenses: data.expenses })
     setText('')
     if (!parsed.isCredit && parsed.missingAmount) {
@@ -35,12 +38,36 @@ export function EntryBox({ data, onOpenForm }: { data: AppData; onOpenForm: (d: 
 
   const speech = useSpeech(handle)
 
+  // Reading the clipboard needs the browser's permission. iPhone shows a small "Paste" bubble that must be
+  // tapped; if it's dismissed, or the browser doesn't allow it, fall back to the normal long-press → Paste.
   const pasteFromClipboard = async () => {
+    setError('')
+    setHint('')
+    if (!navigator.clipboard?.readText) {
+      boxRef.current?.focus()
+      setHint('This browser can’t paste with a button. Long-press the box above and choose Paste.')
+      return
+    }
     try {
-      const clip = await navigator.clipboard.readText()
-      if (clip.trim()) setText((cur) => (cur.trim() ? `${clip.trim()}\n${cur.trim()}` : `${clip.trim()}\n`))
+      const clip = (await navigator.clipboard.readText()).trim()
+      if (!clip) {
+        setHint('The clipboard is empty. Copy the SMS first (long-press the message → Copy).')
+        return
+      }
+      setText((cur) => (cur.trim() ? `${clip}\n${cur.trim()}` : `${clip}\n`))
+      // Put the cursor after the SMS so you can type a few words about it.
+      requestAnimationFrame(() => {
+        const box = boxRef.current
+        if (box) {
+          box.focus()
+          box.setSelectionRange(box.value.length, box.value.length)
+        }
+      })
     } catch {
-      setError('Couldn’t read the clipboard. Long-press the box and choose Paste instead.')
+      boxRef.current?.focus()
+      setHint(/iPhone|iPad/.test(navigator.userAgent)
+        ? 'iPhone asks before pasting: tap the small “Paste” bubble that pops up. Or long-press the box above and choose Paste.'
+        : 'The browser didn’t allow pasting. Long-press (or right-click) the box above and choose Paste.')
     }
   }
 
@@ -79,6 +106,7 @@ export function EntryBox({ data, onOpenForm }: { data: AppData; onOpenForm: (d: 
           </button>
         )}
         <textarea
+          ref={boxRef}
           className="input grow entry-box"
           value={speech.listening ? speech.interim : text}
           onChange={(e) => setText(e.target.value)}
@@ -99,6 +127,7 @@ export function EntryBox({ data, onOpenForm }: { data: AppData; onOpenForm: (d: 
         <button type="button" className="btn primary" disabled={!text.trim() || speech.listening} onClick={() => handle(text)}>Read it</button>
       </div>
       {speech.error && <div className="alert warn">{speech.error}</div>}
+      {hint && <div className="alert info">{hint}</div>}
       {error && !pending && <div className="alert danger">{error}</div>}
       {saved && (
         <div className="alert ok spread">
