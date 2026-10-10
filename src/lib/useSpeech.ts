@@ -21,8 +21,8 @@ function getCtor(): Ctor | undefined {
 }
 
 const ERRORS: Record<string, string> = {
-  'not-allowed': 'Microphone access was blocked. Allow it in browser settings, or use keyboard dictation in the text box.',
-  'service-not-allowed': 'Speech recognition is not available here. Use keyboard dictation in the text box instead.',
+  'not-allowed': 'Microphone access was blocked. Allow it for this site in Safari/Chrome settings, or tap the box and use the 🎤 on your keyboard.',
+  'service-not-allowed': 'Speech recognition isn’t available here. Tap the box and use the 🎤 on your keyboard instead.',
   'no-speech': "Didn't hear anything. Try again.",
   'audio-capture': 'No microphone found.',
   network: 'Speech recognition needs an internet connection.',

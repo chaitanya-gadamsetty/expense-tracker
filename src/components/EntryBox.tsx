@@ -37,6 +37,16 @@ export function EntryBox({ data, onOpenForm }: { data: AppData; onOpenForm: (d: 
   }
 
   const speech = useSpeech(handle)
+  // iPhone home-screen apps usually can't use the browser's speech recognition; the keyboard's own
+  // dictation (🎤 on the iOS keyboard) works everywhere, so the mic button opens the keyboard instead.
+  const iosInstalled = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent) &&
+    ((navigator as Navigator & { standalone?: boolean }).standalone === true || window.matchMedia?.('(display-mode: standalone)').matches)
+  const browserSpeech = speech.supported && !iosInstalled
+  const keyboardDictation = () => {
+    setError('')
+    boxRef.current?.focus()
+    setHint('Tap the 🎤 on the keyboard and say it, e.g. “450 vegetables today”. Then tap Read it.')
+  }
 
   // Reading the clipboard needs the browser's permission. iPhone shows a small "Paste" bubble that must be
   // tapped; if it's dismissed, or the browser doesn't allow it, fall back to the normal long-press → Paste.
@@ -95,16 +105,14 @@ export function EntryBox({ data, onOpenForm }: { data: AppData; onOpenForm: (d: 
         <button className="btn sm" onClick={() => onOpenForm(newDraft({ paidBy: data.owner }))}>{Icon.plus} Quick add</button>
       </div>
       <form className="voice" onSubmit={(e) => { e.preventDefault(); handle(text) }}>
-        {speech.supported && (
-          <button
-            type="button"
-            className={`mic ${speech.listening ? 'listening' : ''}`}
-            onClick={speech.listening ? speech.stop : speech.start}
-            aria-label={speech.listening ? 'Stop listening' : 'Speak an expense'}
-          >
-            {speech.listening ? Icon.stop : Icon.mic}
-          </button>
-        )}
+        <button
+          type="button"
+          className={`mic ${speech.listening ? 'listening' : ''}`}
+          onClick={!browserSpeech ? keyboardDictation : speech.listening ? speech.stop : speech.start}
+          aria-label={speech.listening ? 'Stop listening' : 'Speak an expense'}
+        >
+          {speech.listening ? Icon.stop : Icon.mic}
+        </button>
         <textarea
           ref={boxRef}
           className="input grow entry-box"
