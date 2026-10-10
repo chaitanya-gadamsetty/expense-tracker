@@ -120,6 +120,6 @@ export async function saveSettings(patch: Partial<Omit<Settings, 'id'>>): Promis
   await db.settings.put({ ...DEFAULT_SETTINGS, ...current, ...patch, id: 'settings', ...stamp() })
 }
 
-export async function setDeviceOwner(owner: Person): Promise<void> {
+export async function setDeviceOwner(owner: Person | ''): Promise<void> {
   await db.device.put({ id: 'device', owner })
 }

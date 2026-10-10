@@ -1,6 +1,6 @@
 # Expense Tracker — Requirements v0.8
 
-_Last updated: 2026-10-10 · Status: v0.8 signed off 2026-10-10 · v1 (local) built; GitHub Pages deploy + Drive sync (v1.1) next_
+_Last updated: 2026-10-10 · Status: v0.8 signed off 2026-10-10 · v1 live on GitHub Pages · v1.1 Drive sync in progress_
 
 ## 1. Problem Statement
 Our household spends 150+ times a month across UPI, bank and cards. I want to stay in control: know where money goes, stay inside monthly budgets, and catch recurring bills. Entering expenses has to be effortless. My earlier Google AI Studio attempt **was unreliable and threw a lot of errors**, so reliability is the #1 non-functional requirement.
@@ -105,8 +105,14 @@ Groceries, Food & Dining, Transport & Fuel, Rent & EMI, Utilities & Bills, Shopp
 - **Settings hub:** grouped cards (Categories · Budgets · Recurring · Device owner · Backup) with drill-down screens and back headers.
 - Mobile polish: ≥44px touch targets, no text clipping or wrapping buttons, amounts never truncated.
 
-### 5.2 v1.1
-- **Google Drive sync** through one shared folder for me + spouse (reuse the donation app's sync once proven). Record-level merge, tombstones.
+### 5.2 v1.1 — Google Drive sync (decided 2026-10-11)
+- **One shared household file, each person on their own Google account.** The first phone creates `Expense Tracker household.json` in an `Expense Tracker` folder in its owner's Drive and shares it (edit access) with the partner's email from inside the app. The partner's phone links to it once by picking it in Google's file picker.
+- **Least-privilege access:** the app asks only for `drive.file`. It can see only files it created or that were picked; never the rest of Drive.
+- Reuses the donation app's proven pieces: redirect sign-in (works in the iPhone home-screen app), record-level merge by `updatedAt`, tombstones for deletes, sync on open / after each change / on reconnect.
+- **Household settings come from the shared file** when a phone first links to it (names, budgets, categories); the phone is then asked again whose phone it is. Device owner never syncs.
+- Daily copies of the shared file (last 7) are kept in the owner's `Expense Tracker` folder.
+- Known limits: Google sign-in lasts about an hour, then the app shows "Tap to sync" (one tap, usually no password). If both phones save at the same moment, one upload can briefly overwrite the other; the next sync from that phone restores its records, because every phone keeps a full copy.
+- One-time Google Cloud setup: add the expense-tracker address as a redirect URI, enable the Google Picker API with a browser key, and add the partner's Gmail as a test user.
 - Shared settings (categories, budgets, recurring) sync too.
 
 ### 5.3 Nice-to-have (later)

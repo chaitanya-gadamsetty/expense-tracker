@@ -9,11 +9,14 @@ import { formatINR } from '../lib/format'
 import { CADENCE_LABEL, advance } from '../lib/recurring'
 import { rangeBounds } from '../lib/stats'
 import type { AppData } from '../lib/useData'
+import { pickerAvailable } from '../sync/picker'
+import { describeLastSync, useSync } from '../sync/SyncProvider'
 import { CADENCES, PEOPLE, SPEND_TYPES, SPEND_TYPE_LABEL, type Category, type Recurring } from '../types'
 
-type Sub = 'categories' | 'recurring' | 'people' | 'backup'
+type Sub = 'categories' | 'recurring' | 'people' | 'backup' | 'sync'
 
 export function Settings({ data, sub, goTo }: { data: AppData; sub?: string; goTo: (page: string) => void }) {
+  const sync = useSync()
   const back = (title: string, children: ReactNode) => (
     <div className="stack" style={{ gap: 16 }}>
       <button className="back" onClick={() => goTo('settings')}>{Icon.chevL} Settings</button>
@@ -26,6 +29,7 @@ export function Settings({ data, sub, goTo }: { data: AppData; sub?: string; goT
     case 'recurring': return back('Recurring bills', <RecurringList data={data} />)
     case 'people': return back('People & this device', <People data={data} />)
     case 'backup': return back('Backup & export', <Backup data={data} />)
+    case 'sync': return back('Google Drive sync', <SyncPage />)
   }
 
   const item = (to: string, icon: ReactNode, title: string, hint: string) => (
@@ -39,6 +43,7 @@ export function Settings({ data, sub, goTo }: { data: AppData; sub?: string; goT
     </button>
   )
   const active = data.recurring.filter((r) => r.active).length
+  const syncHint = !sync.linked ? (sync.state === 'off' ? 'Off · share expenses between your phones' : 'Not finished setting up') : sync.state === 'needs-signin' ? 'Sign in again to sync' : `Synced ${describeLastSync(sync.lastSyncAt)}`
   return (
     <div className="stack" style={{ gap: 16 }}>
       <h1>Settings</h1>
@@ -50,14 +55,9 @@ export function Settings({ data, sub, goTo }: { data: AppData; sub?: string; goT
       </div>
       <div className="small muted" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Household & data</div>
       <div className="card settings-list" style={{ padding: '4px 12px' }}>
+        {item('settings/sync', '☁️', 'Google Drive sync', syncHint)}
         {item('settings/people', '👥', 'People & this device', `${data.settings.names.p1} & ${data.settings.names.p2} · this phone: ${data.settings.names[data.owner]}`)}
         {item('settings/backup', '💾', 'Backup & export', data.settings.lastBackupAt ? `Last backup ${new Date(data.settings.lastBackupAt).toLocaleDateString('en-IN')}` : 'No backup yet')}
-      </div>
-      <div className="card stack">
-        <h2>Sync</h2>
-        <div className="small muted">
-          Each phone keeps its own data for now. Google Drive sync between your phones is planned for v1.1. Until then, use Backup & export to move data between devices.
-        </div>
       </div>
     </div>
   )
@@ -330,6 +330,124 @@ function Backup({ data }: { data: AppData }) {
           Storage used on this device: {(storage.usage / 1024 / 1024).toFixed(1)} MB ·{' '}
           {storage.persisted ? 'Protected from automatic browser cleanup' : 'Not yet protected from browser cleanup (add to Home Screen to protect it)'}
         </div>
+      )}
+    </>
+  )
+}
+
+// ---------- sync ----------
+
+function SyncPage() {
+  const sync = useSync()
+  const [busy, setBusy] = useState(false)
+  const [to, setTo] = useState('')
+  const [msg, setMsg] = useState<{ kind: 'ok' | 'danger'; text: string } | null>(null)
+  const [shared, setShared] = useState<string[]>([])
+  const { linked, state } = sync
+
+  useEffect(() => {
+    if (linked && state === 'ok') sync.sharedWith().then(setShared)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linked, state])
+
+  const run = async (fn: () => Promise<void>, ok?: string) => {
+    setBusy(true)
+    setMsg(null)
+    try {
+      await fn()
+      if (ok) setMsg({ kind: 'ok', text: ok })
+    } catch (e) {
+      setMsg({ kind: 'danger', text: (e as Error).message })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const statusText: Record<typeof state, string> = {
+    off: '',
+    'needs-signin': 'Google sign-in has expired (it lasts about an hour). Tap Sync now to sign in again.',
+    'needs-link': '',
+    syncing: 'Syncing…',
+    ok: `Last synced ${describeLastSync(sync.lastSyncAt)}.`,
+    error: 'The last sync failed.',
+    offline: 'Offline. Changes will sync when you are back online.',
+  }
+
+  return (
+    <>
+      {sync.error && <div className="alert danger">{sync.error}</div>}
+      {msg && <div className={`alert ${msg.kind}`}>{msg.text}</div>}
+
+      {state === 'off' && (
+        <div className="card stack">
+          <p className="small" style={{ margin: 0 }}>
+            Keep both phones in step through one shared file in Google Drive. Each of you signs in with your own Google account.
+          </p>
+          <ul className="small muted" style={{ margin: 0, paddingLeft: 18 }}>
+            <li>The app can only see the file it creates (or the one you pick), never the rest of your Drive.</li>
+            <li>Your data also stays on this phone, so the app works offline.</li>
+          </ul>
+          <button className="btn primary" style={{ alignSelf: 'flex-start' }} onClick={sync.connect}>Connect Google Drive</button>
+        </div>
+      )}
+
+      {state !== 'off' && !linked && state !== 'needs-signin' && (
+        <>
+          <div className="small muted">Signed in as <strong>{sync.email || 'your Google account'}</strong>. One more step:</div>
+          <div className="card stack">
+            <h2>First phone in the household?</h2>
+            <p className="small muted" style={{ margin: 0 }}>Creates an “Expense Tracker” folder in your Drive with the shared household file, starting from this phone’s data. Then share it with your partner.</p>
+            <button className="btn primary" style={{ alignSelf: 'flex-start' }} disabled={busy || state === 'syncing'} onClick={() => run(sync.createNew, 'Household file created. Now share it with your partner below.')}>
+              Create household file
+            </button>
+          </div>
+          <div className="card stack">
+            <h2>Partner already set it up?</h2>
+            <p className="small muted" style={{ margin: 0 }}>
+              Ask them to share it with {sync.email || 'your Gmail'} from this screen on their phone. Then pick “Expense Tracker household” here. Your expenses on this phone are merged in; household names and budgets come from the shared file.
+            </p>
+            {pickerAvailable() ? (
+              <button className="btn" style={{ alignSelf: 'flex-start' }} disabled={busy || state === 'syncing'} onClick={() => run(sync.joinShared)}>
+                Pick the shared file
+              </button>
+            ) : (
+              <div className="alert warn">The file picker isn’t set up yet (Google API key missing).</div>
+            )}
+          </div>
+        </>
+      )}
+
+      {state !== 'off' && (linked || state === 'needs-signin') && (
+        <div className="card stack">
+          <div className="small">{statusText[state]}</div>
+          {sync.email && <div className="tiny muted">Signed in as {sync.email}</div>}
+          <div className="row">
+            <button className="btn primary" onClick={sync.syncNow} disabled={state === 'syncing'}>Sync now</button>
+          </div>
+          <div className="tiny muted">Syncs automatically while signed in: when the app opens, after each change, and when you come back online. Drive keeps a daily copy (last 7 days) in the Expense Tracker folder of whoever created the file.</div>
+        </div>
+      )}
+
+      {linked && state !== 'needs-signin' && (
+        <div className="card stack">
+          <h2>Share with your partner</h2>
+          <p className="small muted" style={{ margin: 0 }}>Gives their Google account edit access. Google emails them a link. Then on their phone: open this app → Settings → Google Drive sync → Connect → Pick the shared file.</p>
+          <form className="row" style={{ flexWrap: 'nowrap' }} onSubmit={(e) => { e.preventDefault(); run(async () => { await sync.share(to); setShared(await sync.sharedWith()); setTo('') }, `Shared with ${to.trim()}.`) }}>
+            <input className="input grow" type="email" inputMode="email" autoComplete="email" placeholder="partner@gmail.com" value={to} onChange={(e) => setTo(e.target.value)} aria-label="Partner’s Gmail address" />
+            <button className="btn primary" disabled={busy || !/^\S+@\S+\.\S+$/.test(to.trim())}>Share</button>
+          </form>
+          {shared.length > 0 && <div className="tiny muted">People with access: {shared.join(', ')}</div>}
+        </div>
+      )}
+
+      {state !== 'off' && (
+        <button
+          className="btn danger"
+          style={{ alignSelf: 'flex-start' }}
+          onClick={() => confirm('Stop syncing on this phone? Your data stays on this phone and in Drive.') && sync.disconnect()}
+        >
+          Disconnect this phone
+        </button>
       )}
     </>
   )

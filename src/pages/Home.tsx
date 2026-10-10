@@ -4,6 +4,7 @@ import { DueAlerts } from '../components/DueAlerts'
 import { EntryBox } from '../components/EntryBox'
 import { ExpenseRow } from '../components/ExpenseRow'
 import { SetupCard } from '../components/SetupCard'
+import { SyncStatus } from '../components/SyncStatus'
 import { CategoryLabel, Icon, Segmented } from '../components/ui'
 import { monthLabel, todayISO } from '../lib/dates'
 import { draftFromExpense, type ExpenseDraft } from '../lib/entry'
@@ -38,7 +39,8 @@ export function Home({ data, onOpenForm, goTo }: { data: AppData; onOpenForm: (d
   if (!data.ready) return null
   return (
     <div className="stack" style={{ gap: 16 }}>
-      {(!settings.setupDone || !data.ownerSet) && <SetupCard data={data} />}
+      <SyncStatus goTo={goTo} />
+      {(!settings.setupDone || !data.ownerSet) && <SetupCard data={data} goTo={goTo} />}
       <EntryBox data={data} onOpenForm={onOpenForm} />
       <DueAlerts data={data} today={today} onOpenForm={onOpenForm} />
 

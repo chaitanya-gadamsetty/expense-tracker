@@ -14,7 +14,8 @@ npm run build      # production build in dist/
 ## How it works
 
 - **No AI, no server.** Parsing is rule-based (`src/lib/sms.ts`, `src/lib/spoken.ts`) and every entry is confirmed on a card before saving.
-- **Data** is stored in the browser (IndexedDB via Dexie) on each device. Each person who opens the link gets their own empty app. Google Drive sync is planned for v1.1; until then use Settings → Backup & export.
+- **Data** is stored in the browser (IndexedDB via Dexie) on each device. Each person who opens the link gets their own empty app.
+- **Sync** (Settings → Google Drive sync): one shared household file, `Expense Tracker/Expense Tracker household.json`, in the first person's Drive, shared with the partner's Google account. Scope is `drive.file` only. The partner links once via Google's file picker. See `src/sync/`.
 - **Privacy:** only the last 3–4 digits of accounts/cards are kept; raw SMS text and UPI payee names are never stored.
 - **Every record** has `updatedAt` and a `deleted` tombstone flag, so backup restore (and later Drive sync) merges record-by-record.
 
@@ -38,10 +39,21 @@ npm run build      # production build in dist/
 | `src/lib/entry.ts` | Text → draft (category from memory/keywords), save |
 | `src/lib/categories.ts` | Preset categories, keyword hints, merchant name cleanup |
 | `src/lib/stats.ts` | Month/year stats, budgets, spikes, duplicates, date ranges |
+| `src/lib/snapshot.ts` | Whole-database snapshot + record-level merge (backup and sync) |
 | `src/lib/backup.ts` | Zip backup / merge restore, CSV export |
+| `src/sync/*` | Google sign-in (redirect), Drive client, picker, sync pass, React provider; IDs in `config.ts` |
 | `src/db.ts` | Database schema and all writes |
 | `src/pages/*` | Home, History, Stats, Budgets, Settings |
 
 ## Adding a bank SMS format
 
 Paste a masked real sample into `src/lib/sms.test.ts` with the expected result, run `npm test`, then adjust `src/lib/sms.ts` until it passes.
+
+## Google Cloud setup (one time)
+
+Same project and OAuth client as the donation tracker.
+
+1. **APIs & Services → Credentials → the OAuth client → Authorized redirect URIs:** add `https://chaitanya-gadamsetty.github.io/expense-tracker/` (and `http://localhost:5181/expense-tracker/` for local testing). Origins `https://chaitanya-gadamsetty.github.io` / `http://localhost:5181` under Authorized JavaScript origins.
+2. **APIs & Services → Library:** enable **Google Picker API** (Google Drive API is already on).
+3. **Credentials → Create credentials → API key:** restrict to HTTP referrers `https://chaitanya-gadamsetty.github.io/*` and `http://localhost:5181/*`, and to the Picker API. Put it in `src/sync/config.ts` as `PICKER_API_KEY`.
+4. **OAuth consent screen → Test users:** add the partner's Gmail (and anyone else who will sync).

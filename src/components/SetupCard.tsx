@@ -6,7 +6,7 @@ import { PEOPLE, type Person } from '../types'
 import { Segmented } from './ui'
 
 /** First run: names, monthly budget and who owns this phone. On a second phone only the owner is asked. */
-export function SetupCard({ data }: { data: AppData }) {
+export function SetupCard({ data, goTo }: { data: AppData; goTo: (page: string) => void }) {
   const full = !data.settings.setupDone
   const [names, setNames] = useState(data.settings.names)
   const [budget, setBudget] = useState(String(data.settings.monthlyBudget))
@@ -29,7 +29,10 @@ export function SetupCard({ data }: { data: AppData }) {
       {full && (
         <>
           <p className="small muted" style={{ margin: 0 }}>
-            Your data stays on this device. Change any of this later in Settings.
+            Change any of this later in Settings.{' '}
+            <a href="#/settings/sync" onClick={(e) => { e.preventDefault(); goTo('settings/sync') }}>
+              Joining your partner’s household? Connect Google Drive instead →
+            </a>
           </p>
           <div className="grid-2">
             <label className="field">
