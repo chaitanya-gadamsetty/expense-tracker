@@ -1,6 +1,6 @@
 # Expense Tracker — Requirements v0.8
 
-_Last updated: 2026-10-10 · Status: v0.8 signed off 2026-10-10 · v1 live on GitHub Pages · v1.1 Drive sync in progress_
+_Last updated: 2026-10-10 · Status: v0.8 signed off 2026-10-10 · v1 live on GitHub Pages · v1.1 Drive sync live and verified on both phones (2026-10-11)_
 
 ## 1. Problem Statement
 Our household spends 150+ times a month across UPI, bank and cards. I want to stay in control: know where money goes, stay inside monthly budgets, and catch recurring bills. Entering expenses has to be effortless. My earlier Google AI Studio attempt **was unreliable and threw a lot of errors**, so reliability is the #1 non-functional requirement.
