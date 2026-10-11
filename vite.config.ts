@@ -27,7 +27,11 @@ export default defineConfig({
           { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,png}'] },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png}'],
+        // The public pages are real pages, not app routes: never answer them with the app shell.
+        navigateFallbackDenylist: [/\/about\.html$/, /\/privacy\.html$/],
+      },
     }),
   ],
   // Pre-bundle up front so the dev server never reloads mid-session with a second copy of Dexie

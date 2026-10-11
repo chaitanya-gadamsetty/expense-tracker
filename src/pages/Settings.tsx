@@ -11,10 +11,11 @@ import { rangeBounds } from '../lib/stats'
 import type { AppData } from '../lib/useData'
 import { syncConfigured } from '../sync/config'
 import { pickerAvailable } from '../sync/picker'
+import { Help } from './Help'
 import { describeLastSync, useSync } from '../sync/SyncProvider'
 import { CADENCES, PEOPLE, SPEND_TYPES, SPEND_TYPE_LABEL, type Category, type Recurring } from '../types'
 
-type Sub = 'categories' | 'recurring' | 'people' | 'backup' | 'sync'
+type Sub = 'categories' | 'recurring' | 'people' | 'backup' | 'sync' | 'help'
 
 export function Settings({ data, sub, goTo }: { data: AppData; sub?: string; goTo: (page: string) => void }) {
   const sync = useSync()
@@ -31,6 +32,7 @@ export function Settings({ data, sub, goTo }: { data: AppData; sub?: string; goT
     case 'people': return back('People & this device', <People data={data} />)
     case 'backup': return back('Backup & export', <Backup data={data} />)
     case 'sync': return back('Google Drive sync', <SyncPage />)
+    case 'help': return back('Help', <Help />)
   }
 
   const item = (to: string, icon: ReactNode, title: string, hint: string) => (
@@ -59,6 +61,17 @@ export function Settings({ data, sub, goTo }: { data: AppData; sub?: string; goT
         {item('settings/sync', '☁️', 'Google Drive sync', syncHint)}
         {item('settings/people', '👥', 'People & this device', `${data.settings.names.p1} & ${data.settings.names.p2} · this phone: ${data.settings.names[data.owner]}`)}
         {item('settings/backup', '💾', 'Backup & export', data.settings.lastBackupAt ? `Last backup ${new Date(data.settings.lastBackupAt).toLocaleDateString('en-IN')}` : 'No backup yet')}
+      </div>
+      <div className="small muted" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Help</div>
+      <div className="card settings-list" style={{ padding: '4px 12px' }}>
+        {item('settings/help', '❓', 'Help', 'Install, adding expenses, sync, backups')}
+        <a className="list-item" href={`${import.meta.env.BASE_URL}privacy.html`} target="_blank" rel="noopener" style={{ color: 'inherit', textDecoration: 'none' }}>
+          <span className="cat-ico" aria-hidden="true">🔒</span>
+          <div className="grow stack" style={{ gap: 2 }}>
+            <span style={{ fontWeight: 500 }}>Privacy policy</span>
+            <span className="tiny muted">What's stored where; nothing leaves your devices and Drive</span>
+          </div>
+        </a>
       </div>
     </div>
   )

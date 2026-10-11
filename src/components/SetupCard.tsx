@@ -32,7 +32,8 @@ export function SetupCard({ data, goTo }: { data: AppData; goTo: (page: string) 
             Change any of this later in Settings.{' '}
             <a href="#/settings/sync" onClick={(e) => { e.preventDefault(); goTo('settings/sync') }}>
               Joining your partner’s household? Connect Google Drive instead →
-            </a>
+            </a>{' '}
+            <a href="#/settings/help" onClick={(e) => { e.preventDefault(); goTo('settings/help') }}>Help</a>
           </p>
           <div className="grid-2">
             <label className="field">

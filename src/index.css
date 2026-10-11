@@ -267,3 +267,9 @@ textarea.input { min-height: 72px; resize: vertical; }
 .nav button { min-height: 44px; }
 .actions { display: flex; gap: 8px; justify-content: flex-end; }
 @media (max-width: 420px) { .actions > .btn { flex: 1; padding-left: 8px; padding-right: 8px; } }
+.help summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; min-height: 32px; }
+.help summary::-webkit-details-marker { display: none; }
+.help summary::after { content: '+'; font-size: 1.3rem; color: var(--muted); }
+.help[open] summary::after { content: '–'; }
+.help ol, .help ul { margin: 0; padding-left: 20px; }
+.help li { margin: 4px 0; }
