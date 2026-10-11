@@ -143,7 +143,7 @@ Income tracking, **savings/investments (SIP, RD, FD, PPF): these go in a separat
 ## 5.6 Sharing the app with friends & family (evaluated 2026-10-11)
 - **Without sync:** anyone can open the link and use it fully. Each phone keeps its own data; nobody sees anyone else's. No accounts, no setup beyond names/budget.
 - **With sync:** each household creates its own file in its own Drive and shares it only with its own members. Households never see each other's data, and I (as the app's owner) never see anyone's: there is no server, and data goes straight from their phone to their Drive.
-- **Blocker for sync at scale:** while the Google sign-in is in *Testing* mode, only Gmail addresses I add as test users can sign in (max 100), and they see a "Google hasn't verified this app" warning. To let anyone sync, the app must be *published* (needs a privacy-policy page and home page; `drive.file` is the least-privileged Drive scope, but whether review is needed must be confirmed in the Cloud Console).
+- **Published (2026-10-11):** Google sign-in for the Expense Tracker project is *In production* (External, no logo, `drive.file` only), so anyone with a Google account can turn on sync — no test-user list. Home page `about.html`, privacy `privacy.html`, support contact chaitu.others@gmail.com. A logo would trigger brand verification — deferred.
 - **Responsibilities that come with sharing:** every update reaches everyone; I'm their support; parsers are tuned to my banks (others fall back to quick-add until their SMS samples are added); each household owns its backups.
 - Limits: one household file per phone (someone in two households, e.g. a parent, can only link one); Android share-to-app not built.
 
